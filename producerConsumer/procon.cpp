@@ -1,79 +1,89 @@
+#include <pthread.h>
+#include <semaphore.h>
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <thread>
-#include <mutex>
+#include <queue>
+#include <unistd.h> // for sleep function
 #include <chrono>
-#include <random>
-#include <sstream>
 
+using namespace std;
 
-std::vector<int> buffer;
-int bufferSize = 5;
-std::mutex bufferMutex;
+const int BUFFER_SIZE = 10;
 
-class ProducerThread {
-public:
-    void operator()() {
-        while (true) {
-            {
-                std::lock_guard<std::mutex> lock(bufferMutex);
-                if (buffer.size() < bufferSize) {
-                    int item = rand() % 100 + 1;
-                    buffer.push_back(item);
-                    std::cout << "Producer produced: " << item << std::endl;
-                }
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
-        }
+queue<int> buffer;
+sem_t empty_sem, full;
+pthread_mutex_t mutex;
+
+void *producer(void *param) {
+    int item;
+    while (true) {
+        item = rand() % 100; // generate random item
+        sem_wait(&empty_sem);
+        pthread_mutex_lock(&mutex);
+        buffer.push(item);
+        cout << "Produced: " << item << endl;
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);
+        sleep(*((int *)param)); // sleep for specified time
     }
-};
+}
 
-class ConsumerThread {
-public:
-    void operator()() {
-        while (true) {
-            {
-                std::lock_guard<std::mutex> lock(bufferMutex);
-                if (!buffer.empty()) {
-                    int item = buffer.front();
-                    buffer.erase(buffer.begin());
-                    std::cout << "Consumer consumed: " << item << std::endl;
-                }
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
-        }
+void *consumer(void *param) {
+    int item;
+    while (true) {
+        sem_wait(&full);
+        pthread_mutex_lock(&mutex);
+        item = buffer.front();
+        buffer.pop();
+        cout << "Consumed: " << item << endl;
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty_sem);
+        sleep(*((int *)param)); // sleep for specified time
     }
-};
+}
 
-int main() {
-    std::string filePath = "producerConsumer/datafile.txt";
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        std::cerr << "Error opening file." << std::endl;
+int main(int argc, char *argv[]) {
+    if (argc != 4) {
+        cout << "Usage: " << argv[0] << " <#producers> <#consumers> <sleep_time>" << endl;
         return 1;
     }
 
-    std::string line;
-    while (std::getline(file, line)) {
-        std::istringstream iss(line);
-        int numProducers, numConsumers;
-        if (!(iss >> numProducers >> numConsumers)) {
-            std::cerr << "Error reading file." << std::endl;
-            return 1;
-        }
+    int numProducers = atoi(argv[1]);
+    int numConsumers = atoi(argv[2]);
+    int sleepTime = atoi(argv[3]);
 
-        for (int i = 0; i < numProducers; ++i) {
-            std::thread producerThread(ProducerThread{});
-            producerThread.detach();
-        }
+    pthread_t producers[numProducers];
+    pthread_t consumers[numConsumers];
 
-        for (int i = 0; i < numConsumers; ++i) {
-            std::thread consumerThread(ConsumerThread{});
-            consumerThread.detach();
-        }
+    pthread_mutex_init(&mutex, NULL);
+    sem_init(&empty_sem, 0, BUFFER_SIZE);
+    sem_init(&full, 0, 0);
+
+    srand(time(NULL));
+
+    // Create producer threads
+    for (int i = 0; i < numProducers; i++) {
+        pthread_create(&producers[i], NULL, producer, (void *)&sleepTime);
     }
 
-    file.close();
+    // Create consumer threads
+    for (int i = 0; i < numConsumers; i++) {
+        pthread_create(&consumers[i], NULL, consumer, (void *)&sleepTime);
+    }
+
+    // Join producer threads
+    for (int i = 0; i < numProducers; i++) {
+        pthread_join(producers[i], NULL);
+    }
+
+    // Join consumer threads
+    for (int i = 0; i < numConsumers; i++) {
+        pthread_join(consumers[i], NULL);
+    }
+
+    pthread_mutex_destroy(&mutex);
+    sem_destroy(&empty_sem);
+    sem_destroy(&full);
+
     return 0;
 }
+
