@@ -5,6 +5,8 @@
 #include <mutex>
 #include <chrono>
 #include <random>
+#include <sstream>
+
 
 std::vector<int> buffer;
 int bufferSize = 5;
@@ -14,13 +16,14 @@ class ProducerThread {
 public:
     void operator()() {
         while (true) {
-            std::lock_guard<std::mutex> lock(bufferMutex);
-            if (buffer.size() < bufferSize) {
-                int item = rand() % 100 + 1;
-                buffer.push_back(item);
-                std::cout << "Producer produced: " << item << std::endl;
+            {
+                std::lock_guard<std::mutex> lock(bufferMutex);
+                if (buffer.size() < bufferSize) {
+                    int item = rand() % 100 + 1;
+                    buffer.push_back(item);
+                    std::cout << "Producer produced: " << item << std::endl;
+                }
             }
-            lock.unlock();
             std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
         }
     }
@@ -30,13 +33,14 @@ class ConsumerThread {
 public:
     void operator()() {
         while (true) {
-            std::lock_guard<std::mutex> lock(bufferMutex);
-            if (!buffer.empty()) {
-                int item = buffer.front();
-                buffer.erase(buffer.begin());
-                std::cout << "Consumer consumed: " << item << std::endl;
+            {
+                std::lock_guard<std::mutex> lock(bufferMutex);
+                if (!buffer.empty()) {
+                    int item = buffer.front();
+                    buffer.erase(buffer.begin());
+                    std::cout << "Consumer consumed: " << item << std::endl;
+                }
             }
-            lock.unlock();
             std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
         }
     }
