@@ -8,6 +8,15 @@ using namespace std;
 
 #define MAX_BUFFER_SIZE 10
 
+/*
+struct producerConsumer
+{
+    int id;
+    int priority;
+    int time;
+};
+*/
+
 // Shared data structures
 queue<int> buffer;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
