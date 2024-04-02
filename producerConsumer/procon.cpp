@@ -1,125 +1,105 @@
-#include <pthread.h>
-#include <semaphore.h>
 #include <iostream>
+#include <pthread.h>
 #include <queue>
+#include <unistd.h> // for sleep function
 #include <chrono>
-#include <unistd.h>
 
 using namespace std;
-using namespace std::chrono;
 
-const int BUFFER_SIZE = 10;
-const int NUM_ITEMS = 100; // Total number of items to be produced
+#define MAX_BUFFER_SIZE 10
+
+// Shared data structures
 queue<int> buffer;
-sem_t empty_sem, full;
-pthread_mutex_t mutex;
-int numItemsProduced = 0;
-int numItemsConsumed = 0;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t buffer_empty = PTHREAD_COND_INITIALIZER;
+pthread_cond_t buffer_full = PTHREAD_COND_INITIALIZER;
 
-void *producer(void *param) 
-{
-    int sleepTime = *((int *)param);
+// Function prototypes
+void* producer(void* arg);
+void* consumer(void* arg);
 
-    while (true) 
-    {
-        if (numItemsProduced >= NUM_ITEMS) 
-        {
-            pthread_exit(NULL);
-        }
-
-        sem_wait(&empty_sem);
-        pthread_mutex_lock(&mutex);
-        
-        if (numItemsProduced < NUM_ITEMS) 
-        {
-            int item = numItemsProduced++;
-            buffer.push(item);
-            cout << "Produced: " << item << endl;
-        }
-
-        pthread_mutex_unlock(&mutex);
-        sem_post(&full);
-        sleep(sleepTime); // sleep for specified time
-    }
-}
-
-void *consumer(void *param) 
-{
-    int sleepTime = *((int *)param);
-
-    while (true) {
-        if (numItemsConsumed >= NUM_ITEMS) 
-        {
-            pthread_exit(NULL);
-        }
-
-        sem_wait(&full);
-        pthread_mutex_lock(&mutex);
-
-        if (!buffer.empty()) 
-        {
-            int item = buffer.front();
-            buffer.pop();
-            numItemsConsumed++;
-            cout << "Consumed: " << item << endl;
-        }
-
-        pthread_mutex_unlock(&mutex);
-        sem_post(&empty_sem);
-        sleep(sleepTime); //sleep for specified time
-    }
-}
-
-int main(int argc, char *argv[]) 
-{
-    
-    //Parameters: <producers> <consumers> <sleep_time>
-    if (argc != 4)
-    {
-        cout << "Usage: " << argv[0] << " <Number of Producers:> <Number of Consumers:> <Sleep_Time:>" << endl;
+int main(int argc, char* argv[]) {
+    if (argc != 4) {
+        cout << "Usage: " << argv[0] << " <num_producers> <num_consumers> <sleep_time>" << endl;
         return 1;
     }
 
-    int numProducers = atoi(argv[1]);
-    int numConsumers = atoi(argv[2]);
-    int sleepTime = atoi(argv[3]);
-    pthread_t producers[numProducers];
-    pthread_t consumers[numConsumers];
-    pthread_mutex_init(&mutex, NULL);
-    sem_init(&empty_sem, 0, BUFFER_SIZE);
-    sem_init(&full, 0, 0);
-    auto start = high_resolution_clock::now();
+    int num_producers = atoi(argv[1]);
+    int num_consumers = atoi(argv[2]);
+    int sleep_time = atoi(argv[3]);
 
-    //Create producer threads
-    for (int i = 0; i < numProducers; i++) 
-    {
-        pthread_create(&producers[i], NULL, producer, (void *)&sleepTime);
+    pthread_t producer_threads[num_producers];
+    pthread_t consumer_threads[num_consumers];
+
+    // Create producer threads
+    for (int i = 0; i < num_producers; ++i) {
+        pthread_create(&producer_threads[i], NULL, producer, NULL);
     }
 
-    //Creates consumer threads
-    for (int i = 0; i < numConsumers; i++) 
-    {
-        pthread_create(&consumers[i], NULL, consumer, (void *)&sleepTime);
+    // Create consumer threads
+    for (int i = 0; i < num_consumers; ++i) {
+        pthread_create(&consumer_threads[i], NULL, consumer, NULL);
     }
 
-    //Joins the producer threads
-    for (int i = 0; i < numProducers; i++) 
-    {
-        pthread_join(producers[i], NULL);
+    // Join producer threads
+    for (int i = 0; i < num_producers; ++i) {
+        pthread_join(producer_threads[i], NULL);
     }
 
-    //Join consumer threads
-    for (int i = 0; i < numConsumers; i++) 
-    {
-        pthread_join(consumers[i], NULL);
+    // Join consumer threads
+    for (int i = 0; i < num_consumers; ++i) {
+        pthread_join(consumer_threads[i], NULL);
     }
-
-    auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    cout << "Total turnaround time: " << duration.count() << " microseconds" << endl;
-    pthread_mutex_destroy(&mutex);
-    sem_destroy(&empty_sem);
-    sem_destroy(&full);
 
     return 0;
+}
+
+void* producer(void* arg) {
+    while (true) {
+        pthread_mutex_lock(&mutex);
+
+        // Produce item
+        int item = rand() % 100;
+
+        // Wait if buffer is full
+        while (buffer.size() == MAX_BUFFER_SIZE) {
+            pthread_cond_wait(&buffer_full, &mutex);
+        }
+
+        // Add item to buffer
+        buffer.push(item);
+        cout << "Produced: " << item << endl;
+
+        // Signal consumers
+        pthread_cond_signal(&buffer_empty);
+
+        pthread_mutex_unlock(&mutex);
+
+        sleep(1); // sleep for some time
+    }
+    return NULL;
+}
+
+void* consumer(void* arg) {
+    while (true) {
+        pthread_mutex_lock(&mutex);
+
+        // Wait if buffer is empty
+        while (buffer.empty()) {
+            pthread_cond_wait(&buffer_empty, &mutex);
+        }
+
+        // Consume item
+        int item = buffer.front();
+        buffer.pop();
+        cout << "Consumed: " << item << endl;
+
+        // Signal producers
+        pthread_cond_signal(&buffer_full);
+
+        pthread_mutex_unlock(&mutex);
+
+        sleep(1); // sleep for some time
+    }
+    return NULL;
 }
