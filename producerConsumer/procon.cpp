@@ -48,8 +48,10 @@ public:
     }
 };
 
-int main() {
-    std::string filePath = "producerConsumer/datafile.txt";
+int main(const int argc, char const * const * argv) {
+    
+    std::string filePath = argv[1];
+    
     std::ifstream file(filePath);
 
     if (!file.is_open()) 
@@ -81,6 +83,7 @@ int main() {
             consumerThread.detach();
         }
     }
+
 
     file.close();
     return 0;

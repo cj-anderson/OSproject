@@ -10,4 +10,6 @@ of your preference. You can code the program in Java/C++ language of your choice
 
 use the command:
 
-` g++ -pthread datafile.txt -o executable_name `
+` ./procon ../datafile.txt `
+
+within ` ~/cs471/OSproject/producerConsumer/output ` directory
