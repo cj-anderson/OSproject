@@ -8,8 +8,13 @@ This follows the description in pages 253-257 of the 9th edition of the textbook
 the producer-consumer problem using Pthreads or Winn32 API or using any other library
 of your preference. You can code the program in Java/C++ language of your choice.
 
-use the command:
+## Command
 
+### What to use
 ` ./procon ../datafile.txt `
 
-within ` ~/cs471/OSproject/producerConsumer/output ` directory
+### Where
+
+Use the command from above in ` ~/cs471/OSproject/producerConsumer/output ` 
+
+directory
