@@ -44,3 +44,5 @@ Turnaround time = Exit time - Arrival time
 Average turnaround time: Total turnaround time / No of processes
 Response time = Time at which the process gets the CPU for the first time - Arrival time
 Average response time: Total response time / No of processes
+
+## Command in Terminal to operate the CPU Scheduler
