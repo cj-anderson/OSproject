@@ -18,7 +18,8 @@ public:
         while (true) {
             {
                 std::lock_guard<std::mutex> lock(bufferMutex);
-                if (buffer.size() < bufferSize) {
+                if (buffer.size() < bufferSize) 
+                {
                     int item = rand() % 100 + 1;
                     buffer.push_back(item);
                     std::cout << "Producer produced: " << item << std::endl;
@@ -35,7 +36,8 @@ public:
         while (true) {
             {
                 std::lock_guard<std::mutex> lock(bufferMutex);
-                if (!buffer.empty()) {
+                if (!buffer.empty()) 
+                {
                     int item = buffer.front();
                     buffer.erase(buffer.begin());
                     std::cout << "Consumer consumed: " << item << std::endl;
@@ -49,26 +51,32 @@ public:
 int main() {
     std::string filePath = "producerConsumer/datafile.txt";
     std::ifstream file(filePath);
-    if (!file.is_open()) {
+
+    if (!file.is_open()) 
+    {
         std::cerr << "Error opening file." << std::endl;
         return 1;
     }
 
     std::string line;
-    while (std::getline(file, line)) {
+    while (std::getline(file, line)) 
+    {
         std::istringstream iss(line);
         int numProducers, numConsumers;
-        if (!(iss >> numProducers >> numConsumers)) {
+        if (!(iss >> numProducers >> numConsumers)) 
+        {
             std::cerr << "Error reading file." << std::endl;
             return 1;
         }
 
-        for (int i = 0; i < numProducers; ++i) {
+        for (int i = 0; i < numProducers; ++i) 
+        {
             std::thread producerThread(ProducerThread{});
             producerThread.detach();
         }
 
-        for (int i = 0; i < numConsumers; ++i) {
+        for (int i = 0; i < numConsumers; ++i) 
+        {
             std::thread consumerThread(ConsumerThread{});
             consumerThread.detach();
         }
