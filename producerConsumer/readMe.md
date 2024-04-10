@@ -1,5 +1,3 @@
-This is the readMe file for the producer-consumer directory
-
 # Overview
 
 Problem 2: Producer-Consumer Problem
@@ -8,7 +6,7 @@ This follows the description in pages 253-257 of the 9th edition of the textbook
 the producer-consumer problem using Pthreads or Winn32 API or using any other library
 of your preference. You can code the program in Java/C++ language of your choice.
 
-## Command
+## Command(s)
 
 ### What to use
 ` ./procon ../datafile.txt `
@@ -17,4 +15,4 @@ of your preference. You can code the program in Java/C++ language of your choice
 
 Use the command from above in ` ~/cs471/OSproject/producerConsumer/output ` 
 
-directory
+Output is in the terminal
