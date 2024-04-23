@@ -46,3 +46,5 @@ Response time = Time at which the process gets the CPU for the first time - Arri
 Average response time: Total response time / No of processes
 
 ## Command in Terminal to operate the CPU Scheduler
+To compile run the command in the directory CPUSCHED: g++ prime.cpp -o prime
+To run the program (After Compilation): ./prime
