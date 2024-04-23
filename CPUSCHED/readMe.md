@@ -47,4 +47,6 @@ Average response time: Total response time / No of processes
 
 ## Command in Terminal to operate the CPU Scheduler
 To compile run the command in the directory CPUSCHED: g++ prime.cpp -o prime
+
+
 To run the program (After Compilation): ./prime
