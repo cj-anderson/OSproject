@@ -12,7 +12,7 @@
 //Declares a vector named 'buffer' that will store integers
 std::vector<int> buffer;
 
-// Declares that bufferSize' holds the maximum number of integers
+// Declares that bufferSize holds the maximum number of integers
 int bufferSize = 5;
 
 // This line declares a mutex named 'bufferMutex'. 
