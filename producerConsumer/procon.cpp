@@ -1,3 +1,4 @@
+// Libraries
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -8,44 +9,71 @@
 #include <sstream>
 
 
+//Declares a vector named 'buffer' that will store integers
 std::vector<int> buffer;
+
+// Declares that bufferSize' holds the maximum number of integers
 int bufferSize = 5;
+
+// This line declares a mutex named 'bufferMutex'. 
+// A mutex is used to synchronize access to shared resources, 
+// in this case, it ensures that multiple threads cannot access the 'buffer' simultaneously.
 std::mutex bufferMutex;
+
 class ProducerThread {
 public:
+    // This function overloads the '()' operator, making objects of this class callable.
     void operator()() {
+        // Infinite loop to continuously produce items.
         while (true) {
             {
+                // Locks the mutex to safely access the shared 'buffer'.
                 std::lock_guard<std::mutex> lock(bufferMutex);
+
+                // Checks if the buffer has space to add more items.
                 if (buffer.size() < bufferSize) 
                 {
+                    // Generates a random integer between 1 and 100.
                     int item = rand() % 100 + 1;
+
+                    // Adds the generated item to the buffer.
                     buffer.push_back(item);
+
+                    // Prints a message indicating the item produced by the producer.
                     std::cout << "Producer produced: " << item << std::endl;
                 }
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
-    }
-}
-};
-class ConsumerThread {
-public:
-    void operator()() {
-        while (true) {
-            {
-                std::lock_guard<std::mutex> lock(bufferMutex);
-                if (!buffer.empty()) 
-                {
-                    int item = buffer.front();
-                    buffer.erase(buffer.begin());
-                    std::cout << "Consumer consumed: " << item << std::endl;
-                }
-            }
+            // Pauses execution for a random period between 1 to 5 seconds.
             std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
         }
     }
 };
 
+class ConsumerThread {
+public:
+    // This function overloads the '()' operator, making objects of this class callable.
+    void operator()() {
+        // Infinite loop to continuously consume items.
+        while (true) {
+            {
+                // Locks the mutex to safely access the shared 'buffer'.
+                std::lock_guard<std::mutex> lock(bufferMutex);
+                // Checks if the buffer is not empty.
+                if (!buffer.empty()) 
+                {
+                    // Retrieves the first item from the buffer.
+                    int item = buffer.front();
+                    // Removes the consumed item from the buffer.
+                    buffer.erase(buffer.begin());
+                    // Prints a message indicating the item consumed by the consumer.
+                    std::cout << "Consumer consumed: " << item << std::endl;
+                }
+            }
+            // Pauses execution for a random period between 1 to 5 seconds.
+            std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 5000 + 1000));
+        }
+    }
+};
 
 int main(const int argc, char const * const * argv) {
     
