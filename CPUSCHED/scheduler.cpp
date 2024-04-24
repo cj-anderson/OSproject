@@ -7,13 +7,26 @@ using namespace std;
 
 // Struct represents a process
 struct Process {
-    int pid; // Process ID
-    int arrivalTime; // Arrival time
-    int priority; // Priority
-    int burstTime; // CPU burst time
-    int startTime; // Start time
-    int waitingTime; // Waiting time
-    int turnaroundTime; // Turnaround time
+    // Process ID
+    int pid; 
+    
+    // Arrival time
+    int arrivalTime; 
+    
+    // Priority
+    int priority;
+    
+    // CPU burst time
+    int burstTime; 
+    
+    // Start time
+    int startTime; 
+   
+    // Waiting time
+    int waitingTime; 
+    
+    // Turnaround time
+    int turnaroundTime; 
 
  //Constructor
     Process(int id, int at, int bt, int prio) : pid(id), arrivalTime(at), burstTime(bt), priority(prio),
