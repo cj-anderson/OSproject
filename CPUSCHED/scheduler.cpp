@@ -73,7 +73,7 @@ struct BurstTimeComparator {
     }
 };
 
-// Compares processes based oon priorities for Priority Scheduling
+// Compares processes based on priorities for Priority Scheduling
 struct PriorityComparator {
     bool operator()(const Process& p1, const Process& p2) const {
         return p1.priority > p2.priority;
@@ -96,7 +96,7 @@ static queue<Process> simulateFIFO(queue<Process>& processes) {
         processes.pop();
 
         //If arrivial time of current process > current time, update
-        //current time to the arrical time of current process
+        //current time to the arrival time of current process
         if (currentProcess.arrivalTime > currentTime) {
             currentTime = currentProcess.arrivalTime;
         }
@@ -104,7 +104,7 @@ static queue<Process> simulateFIFO(queue<Process>& processes) {
         //Set the start time of the current process to current time
         currentProcess.startTime = currentTime;
         
-        //Calculate turnarounf time for current process
+        //Calculate turnaround time for current process
         currentProcess.turnaroundTime = currentTime + currentProcess.burstTime - currentProcess.arrivalTime;
         
         // Calculate waiting time for the current process
