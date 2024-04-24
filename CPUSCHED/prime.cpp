@@ -7,7 +7,7 @@ using namespace std;
 
 
 int main() {
-
+    //Output File Creation Function
     ofstream outFile("output.txt");
     if (!outFile) {
         cerr << "Error: Unable to create text file" << endl;
