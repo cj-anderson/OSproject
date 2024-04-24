@@ -15,31 +15,29 @@ std::vector<int> buffer;
 // Declares that bufferSize holds the maximum number of integers
 int bufferSize = 5;
 
-// This line declares a mutex named 'bufferMutex'. 
-// A mutex is used to synchronize access to shared resources, 
-// in this case, it ensures that multiple threads cannot access the 'buffer' simultaneously.
+// A mutex is used to synchronize access to shared resources somultiple threads cannot access the buffer at once
 std::mutex bufferMutex;
 
 class ProducerThread {
 public:
-    // This function overloads the '()' operator, making objects of this class callable.
+    // This function overloads the '()' operator and allows it to be called (if needed)
     void operator()() {
-        // Infinite loop to continuously produce items.
+        // Infinite loop to continuously produce items
         while (true) {
             {
-                // Locks the mutex to safely access the shared 'buffer'.
+                // Locks mutex so it can safely access the shared buffer
                 std::lock_guard<std::mutex> lock(bufferMutex);
 
-                // Checks if the buffer has space to add more items.
+                // Checks if the buffer has space to add more items
                 if (buffer.size() < bufferSize) 
                 {
                     // Generates a random integer between 1 and 100.
                     int item = rand() % 100 + 1;
 
-                    // Adds the generated item to the buffer.
+                    // Adds the generated item to the buffer
                     buffer.push_back(item);
 
-                    // Prints a message indicating the item produced by the producer.
+                    // Prints a message indicating the item produced by the producer
                     std::cout << "Producer produced: " << item << std::endl;
                 }
             }
@@ -56,7 +54,7 @@ public:
         // Infinite loop to continuously consume items.
         while (true) {
             {
-                // Locks the mutex to safely access the shared 'buffer'.
+                // Locks the mutex to safely access the shared 'buffer'
                 std::lock_guard<std::mutex> lock(bufferMutex);
                 // Checks if the buffer is not empty.
                 if (!buffer.empty()) 
@@ -89,7 +87,7 @@ int main(const int argc, char const * const * argv) {
     // Open the output file in write mode
     std::ofstream outputFile(outputFilePath);
     
-    // Check if the output file is open
+    // Error message for the output file
     if (!outputFile.is_open()) {
         std::cerr << "Error opening output file." << std::endl;
         return 1;
@@ -99,10 +97,10 @@ int main(const int argc, char const * const * argv) {
     std::streambuf* originalCoutBuf = std::cout.rdbuf(outputFile.rdbuf());
     std::streambuf* originalCerrBuf = std::cerr.rdbuf(outputFile.rdbuf());
 
-    // Path to the input file
+    // Path set for the input file
     std::string filePath = argv[1];
     
-    // Open the input file
+    // Opens the input file
     std::ifstream inputFile(filePath);
     
     if (!inputFile.is_open()) {
@@ -116,32 +114,33 @@ int main(const int argc, char const * const * argv) {
         // Process each line here
         std::istringstream iss(line);
         int numProducers, numConsumers;
+
         if (!(iss >> numProducers >> numConsumers)) {
             std::cerr << "Error reading input file." << std::endl;
             return 1;
         }
 
-        // Create producer threads
+        // Creates producer threads
         for (int i = 0; i < numProducers; ++i) {
             std::thread producerThread(ProducerThread{});
             producerThread.detach();
         }
 
-        // Create consumer threads
+        // Creates consumer threads
         for (int i = 0; i < numConsumers; ++i) {
             std::thread consumerThread(ConsumerThread{});
             consumerThread.detach();
         }
     }
 
-    // Close the input file
+    // Closes the input file
     inputFile.close();
     
     // Reset std::cout and std::cerr to their original states
     std::cout.rdbuf(originalCoutBuf);
     std::cerr.rdbuf(originalCerrBuf);
 
-    // Close the output file
+    // Closes the output file
     outputFile.close();
 
     return 0;
