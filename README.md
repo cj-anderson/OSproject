@@ -1,11 +1,7 @@
 # OSproject
 Operating Systems Project 471
 
-### Team:
-
-Prestin Bell
-
-Nia Newton
+Caleb Anderson
 
 ### Language Used:
 
